@@ -80,7 +80,6 @@ with tf.Session() as sess:
         
         rewards_list.append((episode, reward))
          
-    # serialize weights to HDF5
     actor_critic.save_actor()
     actor_critic.save_critic()
                                  
