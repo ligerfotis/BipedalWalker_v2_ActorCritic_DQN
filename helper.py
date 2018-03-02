@@ -40,7 +40,7 @@ class ActorCritic:
         # Calculate de/dA as = de/dC * dC/dA, where e is error, C critic, A act #
         # ===================================================================== #
 
-        self.memory = deque(maxlen=20000)
+        self.memory = deque(maxlen=50000)
         self.actor_state_input, self.actor_model = self.create_actor_model()
         _, self.target_actor_model = self.create_actor_model()
 
@@ -75,12 +75,12 @@ class ActorCritic:
         state_input = Input(shape=(self.state_size,))
         h1 = Dense(self.hidden_size, activation='relu')(state_input)
         h2 = Dense(self.hidden_size*2, activation='relu')(h1)
-        h3 = Dense(self.hidden_size*2, activation='relu')(h2)
-        h4 = Dense(self.hidden_size, activation='relu')(h3)
-        output = Dense(self.env.action_space.shape[0], activation='relu')(h4)
+        h3 = Dense(self.hidden_size, activation='relu')(h2)
+        #h4 = Dense(self.hidden_size, activation='relu')(h3)
+        output = Dense(self.env.action_space.shape[0], activation='relu')(h3)
         
         model = Model(input=state_input, output=output)
-        adam  = Adam(lr=0.001)
+        adam  = Adam(self.learning_rate)
         model.compile(loss="mse", optimizer=adam)
         return state_input, model
 
@@ -94,12 +94,12 @@ class ActorCritic:
         
         merged    = Add()([state_h2, action_h1])
         merged_h1 = Dense(self.hidden_size, activation='relu')(merged)
-        merged_h2 = Dense(self.hidden_size*2, activation='relu')(merged_h1)
-        merged_h3 = Dense(self.hidden_size, activation='relu')(merged_h2)
-        output = Dense(1, activation='relu')(merged_h3)
+        merged_h2 = Dense(self.hidden_size, activation='relu')(merged_h1)
+        #merged_h3 = Dense(self.hidden_size, activation='relu')(merged_h2)
+        output = Dense(1, activation='relu')(merged_h2)
         model  = Model(input=[state_input,action_input], output=output)
         
-        adam  = Adam(lr=0.001)
+        adam  = Adam(self.learning_rate)
         model.compile(loss="mse", optimizer=adam)
         return state_input, action_input, model
 
@@ -177,19 +177,19 @@ class ActorCritic:
         return self.actor_model.predict(cur_state)
     
     def save_actor(self):
-        self.actor_model.save("model_actor.h5")
+        self.actor_model.save("model_actor2.h5")
         print("Saved actor model to disk")
         
     def save_critic(self):
-        self.critic_model.save("model_critic.h5")
+        self.critic_model.save("model_critic2.h5")
         print("Saved critic model to disk")
         
     def load_actor(self):
-        self.actor_model = load_model("model_actor.h5")
+        self.actor_model = load_model("model_actor2.h5")
         print("Loaded actor model from disk")
         
     def load_critic(self):
-        self.critic_model = load_model("model_critic.h5")
+        self.critic_model = load_model("model_critic2.h5")
         print("Loaded critic model from disk")
 
 '''

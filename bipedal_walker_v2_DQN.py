@@ -8,16 +8,16 @@ import gym
 # ============================== #
 #        Hyperparameters         #
 # ============================== #   
-train_episodes = 1000
+train_episodes = 250000
 gamma = 0.9
 
 epsilon = 1.0            # exploration probability at start
-epsilon_decay = 0.95           
+epsilon_decay = 0.99998           
 
-hidden_size = 256             # number of units in each Q-network hidden layer
-learning_rate = 0.001         # Q-network learning rate
+hidden_size = 64             # number of units in each Q-network hidden layer
+learning_rate = 0.0001         # Q-network learning rate
 
-batch_size = 64                # experience mini-batch size
+batch_size = 32                # experience mini-batch size
 score_requirement = 0
 
 # ============================== #
@@ -34,24 +34,24 @@ with tf.Session() as sess:
     #actor_critic.load_actor()
     #actor_critic.load_critic()
 
-    state = env.reset()
-    action = env.action_space.sample()
+    state = np.round(env.reset(),decimals=3)
+    action = np.round(env.action_space.sample(),decimals = 3)
     
     rewards_list=[]
     
     for episode in range(1, train_episodes):
         
         state = state[:14].reshape((-1, 14))
-        action = actor_critic.act(state)
-        new_state, reward, done, _ = env.step(action[0])
-        new_state = new_state[:14].reshape((-1, 14))
         
-        reward = np.float64(reward) #in case the enviroment gives us -100
+        action = np.round(actor_critic.act(state),decimals=3)
+        
+        new_state, reward, done, _ = env.step(action[0])
+        new_state = np.round(new_state,decimals=3)[:14].reshape((-1, 14))
+        reward = np.round(np.float64(reward),decimals=3) #in case the environment gives us -100
         
         print('[Training]',
               'Episode: {}'.format(episode),
               'Total reward: {}'.format(reward))
-        
         # Add experience to memory
         actor_critic.remember(state, action, reward, new_state, done)
         
@@ -60,7 +60,7 @@ with tf.Session() as sess:
         # ============================== #    
         if done:   
             env.reset()
-            action = env.action_space.sample()
+            action = np.round(env.action_space.sample(),decimals=3)
             state, reward, done, _ = env.step(env.action_space.sample())
     
         # ======================================= #
@@ -71,8 +71,9 @@ with tf.Session() as sess:
                  and round( rewards_list[-1][1], 4) == round( rewards_list[-2][1], 4) 
                  and round( rewards_list[-2][1], 4) == round( rewards_list[-3][1], 4) ):
                 env.reset()
-                action = env.action_space.sample()
+                action = np.round(env.action_space.sample(),decimals=3)
                 state, _, done, _ = env.step(env.action_space.sample())
+                state=np.round(state,decimals=3)
                 reward = -10.0
                 
             
@@ -80,6 +81,7 @@ with tf.Session() as sess:
         
         rewards_list.append((episode, reward))
          
+    # serialize weights to HDF5
     actor_critic.save_actor()
     actor_critic.save_critic()
                                  

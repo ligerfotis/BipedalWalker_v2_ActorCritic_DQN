@@ -2,6 +2,7 @@ from helper import ActorCritic
 import tensorflow as tf
 import keras.backend as K
 import gym
+import numpy as np
 
 def test(learning_rate = 0.001, hidden_size = 24,batch_size = 32, epsilon = 1.0, 
                  epsilon_decay = .995, gamma = .95):   
@@ -22,10 +23,10 @@ def test(learning_rate = 0.001, hidden_size = 24,batch_size = 32, epsilon = 1.0,
         state, _, done, _ = env.step(env.action_space.sample())
         for _ in range(1, test_episodes):
             current_step = 0
-            while current_step < test_max_steps:
+            while not done:
                 env.render()
                 
-                state = state[:14].reshape((-1, 14))
+                state = np.round(state[:14],decimals=3).reshape((-1, 14))
                 
                 action = actor_critic.actor_model.predict(state)[0]
                 
